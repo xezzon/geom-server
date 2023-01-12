@@ -5,7 +5,7 @@ import static indi.xezzon.geom.core.constant.SpringConstants.ID_GENERATOR;
 
 import indi.xezzon.tao.exception.ThirdPartyException;
 import indi.xezzon.tao.manager.IdGenerator;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.RedisTemplate;

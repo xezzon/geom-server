@@ -1,14 +1,15 @@
 spring:
-  redis:
-    url: redis://${REDIS_URL:localhost:6379}
-    database: ${REDIS_DB:0}
-    lettuce:
-      pool:
-        max-active: 8
-        max-wait: -1
-        max-idle: 8
-        min-idle: 0
-    timeout: 3000ms
+  data:
+    redis:
+      url: redis://${REDIS_URL:localhost:6379}
+      database: ${REDIS_DB:0}
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1
+          max-idle: 8
+          min-idle: 0
+      timeout: 3000ms
 bean:
   id-generator: redis
   sa-token-dao: redis

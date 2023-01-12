@@ -2,7 +2,7 @@ package indi.xezzon.geom.auth.domain.query;
 
 import static indi.xezzon.geom.constant.PatternConstants.PASSWORD_PATTERN;
 
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

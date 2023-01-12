@@ -13,10 +13,10 @@ import indi.xezzon.geom.auth.service.UserGroupService;
 import indi.xezzon.geom.auth.service.UserService;
 import indi.xezzon.tao.exception.ClientException;
 import indi.xezzon.tao.observer.ObserverContext;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 /**

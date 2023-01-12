@@ -9,10 +9,10 @@ import indi.xezzon.geom.auth.domain.User;
 import indi.xezzon.geom.auth.domain.UserGroup;
 import indi.xezzon.geom.auth.domain.dataset.UserTestDataset;
 import indi.xezzon.tao.exception.BaseException;
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -65,7 +65,7 @@ class AuthServiceTest {
   }
 
   @Test
-  @javax.transaction.Transactional
+  @jakarta.transaction.Transactional
   void checkCipher() {
     /* 正常流程 */
     StpUtil.login(currentUser.getId());

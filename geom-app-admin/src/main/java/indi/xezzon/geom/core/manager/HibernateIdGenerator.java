@@ -29,9 +29,8 @@ public class HibernateIdGenerator implements IdentifierGenerator {
       SharedSessionContractImplementor sharedSessionContractImplementor,
       Object o
   ) throws HibernateException {
-    Serializable originId = sharedSessionContractImplementor
+    Serializable originId = (Serializable) sharedSessionContractImplementor
         .getEntityPersister(null, o)
-        .getClassMetadata()
         .getIdentifier(o, sharedSessionContractImplementor);
     if (originId != null) {
       return originId;
