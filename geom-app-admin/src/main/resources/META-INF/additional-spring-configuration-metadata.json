@@ -1,0 +1,33 @@
+{
+  "groups": [
+    {
+      "name": "bean"
+    }
+  ],
+  "properties": [
+    {
+      "name": "bean.id-generator",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "bean.sa-token-dao",
+      "type": "java.lang.String"
+    }
+  ],
+  "hints": [
+    {
+      "name": "bean.id-generator",
+      "values": [
+        { "value": "snowflake" },
+        { "value": "redis" }
+      ]
+    },
+    {
+      "name": "bean.sa-token-dao",
+      "values": [
+        { "value": "default" },
+        { "value": "redis" }
+      ]
+    }
+  ]
+}
