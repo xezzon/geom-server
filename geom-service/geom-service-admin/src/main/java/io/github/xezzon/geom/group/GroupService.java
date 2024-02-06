@@ -1,8 +1,10 @@
 package io.github.xezzon.geom.group;
 
+import io.github.xezzon.geom.crypto.service.SymmetricCryptoService;
 import io.github.xezzon.geom.group.domain.Group;
 import io.github.xezzon.geom.group.domain.GroupMember;
 import io.github.xezzon.geom.group.domain.GroupMemberUser;
+import io.github.xezzon.geom.group.service.IGroupService4Auth;
 import io.github.xezzon.geom.user.domain.User;
 import io.github.xezzon.geom.user.service.IUserService4Group;
 import io.github.xezzon.tao.exception.ClientException;
@@ -10,35 +12,34 @@ import io.github.xezzon.tao.exception.ServerException;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
 import jakarta.inject.Singleton;
-import java.security.GeneralSecurityException;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.crypto.KeyGenerator;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * @author xezzon
  */
 @Singleton
-public class GroupService {
+public class GroupService implements IGroupService4Auth {
 
   private final transient GroupDAO groupDAO;
   private final transient GroupMemberDAO groupMemberDAO;
   private final transient IUserService4Group userService;
+  private final transient SymmetricCryptoService symmetricCryptoService;
 
   public GroupService(
       GroupDAO groupDAO,
       GroupMemberDAO groupMemberDAO,
-      IUserService4Group userService
+      IUserService4Group userService,
+      SymmetricCryptoService symmetricCryptoService
   ) {
     this.groupDAO = groupDAO;
     this.groupMemberDAO = groupMemberDAO;
     this.userService = userService;
+    this.symmetricCryptoService = symmetricCryptoService;
   }
 
   protected List<Group> listGroupByUserId(String userId) {
@@ -79,23 +80,15 @@ public class GroupService {
   }
 
   protected String generateSecretKey(String groupId) {
-    try {
-      KeyGenerator keyGenerator = KeyGenerator.getInstance("SM4", new BouncyCastleProvider());
-      keyGenerator.init(128);
-      String secretKey = Base64.getEncoder().encodeToString(
-          keyGenerator.generateKey().getEncoded()
-      );
-      Group group = new Group();
-      group.setId(groupId);
-      group.setSecretKey(secretKey);
-      boolean updated = groupDAO.update(group);
-      if (!updated) {
-        throw new ServerException("用户组不存在");
-      }
-      return secretKey;
-    } catch (GeneralSecurityException e) {
-      throw new RuntimeException(e);
+    String secretKey = symmetricCryptoService.generateSymmetricSecretKey();
+    Group group = new Group();
+    group.setId(groupId);
+    group.setSecretKey(secretKey);
+    boolean updated = groupDAO.update(group);
+    if (!updated) {
+      throw new ServerException("用户组不存在");
     }
+    return secretKey;
   }
 
   protected Page<GroupMemberUser> listGroupMember(String groupId, int pageNum, short pageSize) {
@@ -122,5 +115,12 @@ public class GroupService {
     return groupMemberDAO.get().deleteByIdInAndGroupIdAndUserIdNot(
         membersId, groupId, group.getOwnerId()
     );
+  }
+
+  @Override
+  public String getSecretKey(String groupId) {
+    return groupDAO.get().findById(groupId)
+        .map(Group::getSecretKey)
+        .orElseThrow(() -> new ClientException("获取不到密钥"));
   }
 }

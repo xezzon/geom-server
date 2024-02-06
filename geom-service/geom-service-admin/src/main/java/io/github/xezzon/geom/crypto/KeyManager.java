@@ -1,4 +1,4 @@
-package io.github.xezzon.geom.auth;
+package io.github.xezzon.geom.crypto;
 
 import cn.hutool.crypto.KeyUtil;
 import cn.hutool.crypto.PemUtil;
