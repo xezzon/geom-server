@@ -2,7 +2,11 @@ package io.github.xezzon.geom.role;
 
 import io.github.xezzon.geom.role.domain.Role;
 import io.github.xezzon.tao.exception.ClientException;
+import io.github.xezzon.tao.tree.Tree;
+import io.micronaut.transaction.annotation.Transactional;
 import jakarta.inject.Singleton;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -30,6 +34,19 @@ public class RoleService {
     checkRepeat(role);
     /* 数据持久化 */
     roleDAO.get().save(role);
+  }
+
+  @Transactional(rollbackFor = {Exception.class})
+  protected void removeRole(String id) {
+    /* 前置校验 */
+    // TODO: 校验当前用户是否拥有该角色的上级（含间接上级）角色
+    /* 数据持久化 */
+    Optional<Role> self = roleDAO.get().findById(id);
+    List<Role> children = Tree.topDown(
+        Collections.singleton(id), -1, roleDAO.get()::findByParentIdIn
+    );
+    self.ifPresent(children::add);
+    roleDAO.get().deleteAll(children);
   }
 
   private void checkRepeat(Role role) {

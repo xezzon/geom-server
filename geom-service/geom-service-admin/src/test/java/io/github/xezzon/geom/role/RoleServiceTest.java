@@ -8,7 +8,10 @@ import io.github.xezzon.tao.exception.ClientException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,26 +22,6 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 @TestInstance(Lifecycle.PER_CLASS)
 class RoleServiceTest {
 
-  private static final List<Role> DATASET = new ArrayList<>();
-  static {
-    for (int i = 0, cnt = Byte.MAX_VALUE; i < cnt; i++) {
-      Role role = new Role();
-      role.setCode(RandomUtil.randomString(9));
-      role.setName(RandomUtil.randomString(9));
-      role.setInheritable(true);
-      role.setParentId("");
-      DATASET.add(role);
-    }
-    for (int i = 0, cnt = Byte.MAX_VALUE; i < cnt; i++) {
-      Role role = new Role();
-      role.setCode(RandomUtil.randomString(9));
-      role.setName(RandomUtil.randomString(9));
-      role.setInheritable(false);
-      role.setParentId("");
-      DATASET.add(role);
-    }
-  }
-
   @Inject
   transient RoleService service;
   @Inject
@@ -46,7 +29,27 @@ class RoleServiceTest {
 
   @BeforeAll
   void setUp() {
-    repository.saveAll(DATASET);
+    final List<Role> DATASET = new ArrayList<>();
+    for (int i = 0, cnt = Byte.MAX_VALUE; i < cnt; i++) {
+      Role role = new Role();
+      role.setCode(RandomUtil.randomString(9));
+      role.setName(RandomUtil.randomString(9));
+      role.setInheritable(true);
+      String parentId = DATASET.isEmpty() ? "0" : RandomUtil.randomEle(DATASET).getId();
+      role.setParentId(parentId);
+      repository.save(role);
+      DATASET.add(role);
+    }
+    for (int i = 0, cnt = Byte.MAX_VALUE; i < cnt; i++) {
+      Role role = new Role();
+      role.setCode(RandomUtil.randomString(9));
+      role.setName(RandomUtil.randomString(9));
+      role.setInheritable(false);
+      String parentId = RandomUtil.randomEle(DATASET).getId();
+      role.setParentId(parentId);
+      repository.save(role);
+      DATASET.add(role);
+    }
   }
 
   @Test
@@ -97,6 +100,28 @@ class RoleServiceTest {
     query.setParentId("");
     Assertions.assertThrows(ClientException.class, () ->
         service.addRole(query.into())
+    );
+  }
+
+  @Test
+  void removeRole() {
+    final List<Role> dataset = repository.findAll();
+    Role exist = dataset.parallelStream()
+        .findAny().get();
+    service.removeRole(exist.getId());
+    List<Role> toRemove = Collections.singletonList(exist);
+    while (!toRemove.isEmpty()) {
+      dataset.remove(exist);
+      Set<String> parentIds = toRemove.parallelStream()
+          .map(Role::getId)
+          .collect(Collectors.toSet());
+      toRemove = dataset.parallelStream()
+          .filter((o) -> parentIds.contains(o.getParentId()))
+          .toList();
+    }
+    Assertions.assertLinesMatch(
+        dataset.parallelStream().map(Role::getId).toList(),
+        repository.findAll().parallelStream().map(Role::getId).toList()
     );
   }
 }
